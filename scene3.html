@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+
+<h1>The Ames Housing</h1>
+<p>We will use scatterplot to display the relationship of Area vs Price for houses in the dataset.</p>
+<hr>
+<h2>Scene 3</h2>
+<p><b>Price VS Area</b> <i>log scale, with interactive Quality Category</i></p>
+<div id='chart'></div>
+<style type='text/css'>
+.point{
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+.legend{
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+.legend text {
+  font-size: 12px;
+}
+</style>
+<script src='https://d3js.org/d3.v4.js'></script>
+<script>
+
+  var margin = {top: 10, right: 80, bottom: 30, left: 60},
+      width = 550 - margin.left - margin.right,
+      height = 400 - margin.top - margin.bottom;
+  
+  var svg = d3.select('#chart')
+    .append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+    .append('g')
+      .attr('transform',
+            'translate(' + margin.left + ',' + margin.top + ')');
+  var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+  //Read the data
+  d3.csv('https://raw.githubusercontent.com/akedia/akedia.github.io/master/house.csv', function(data) {
+  
+    var xAxis = d3.scaleLog()
+      .domain([300, 4000])
+      .range([ 0, width ]);
+    svg.append('g')
+      .attr('transform', 'translate(0,' + height + ')')
+      .call(d3.axisBottom(xAxis)
+      .tickFormat(d3.format(".0s")));
+    svg.append('text')
+		  .attr('x', width)
+		  .attr('y', height - 10)
+		  .attr('text-anchor', 'end')
+		  .text('Area (ft2)'); 
+ 
+    var yAxis = d3.scaleLog()
+      .domain([30000, 600000])
+      .range([ height, 0]);
+    svg.append('g')
+      .call(d3.axisLeft(yAxis)
+      .tickFormat(d3.format("$.0s")));  
+    svg.append('text')
+		  .attr('x', 10)
+		  .attr('y', 10)
+		  .text('Price');
+  
+    svg.append('g')
+      .selectAll('dot')
+      .data(data)
+      .enter()
+      .append('circle')
+        .attr('class','point')
+        .attr('cx', function (d) { return xAxis(d.area); } )
+        .attr('cy', function (d) { return yAxis(d.price); } )
+        .attr('r', 2.5)
+        .style('fill', function(d) { return color(d.quality); })
+
+    var legend = svg.selectAll('.legend')
+      .data(color.domain())
+      .enter()
+      .append('g')
+      .attr('class', 'legend')
+      .attr('transform', function(d, i) { return 'translate(0,' + i * 20 + ')'; });
+
+      legend.append('circle')
+        .attr('cx', width+10)
+        .attr('r', 7)
+        .style('fill', color);
+
+      legend.append('text')
+        .attr('x', width + 20)
+        .attr('dy', '.4em')
+        .text(function(d) { return d; });
+      
+      legend.on('mouseover', function(quality) {
+        d3.selectAll('.point')
+          .style('opacity', 0.1)
+          .filter(function(d) { return d.quality== quality; })
+          .style('opacity', 1);
+        d3.selectAll('.legend')
+          .style('opacity', 0.1)
+          .filter(function(d) { return d== quality; })
+          .style('opacity', 1);
+        })
+        .on('mouseout', function(quality) {
+          d3.selectAll('.legend')
+            .style('opacity', 1);
+          d3.selectAll('.point')
+            .style('opacity', 1);
+        });    
+      
+      d3.selectAll('.point')
+        .on('mouseover', function(point){
+          d3.selectAll('.point')
+          .style('opacity',0.1)
+          .filter(function(d) { return d.quality== point.quality; })
+          .style('opacity', 1);
+          d3.selectAll('.legend')
+          .style('opacity', 0.1)
+          .filter(function(d) { return d== point.quality; })
+          .style('opacity', 1);
+        })
+        
+  
+
+  })
+  </script>
+
+  <p>This time, we added interactive story telling with group of different house quality, user can mouse over the points or the legends to see particular category.</p>
+  <a href='scene2.html'>Prev</a>
